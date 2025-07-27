@@ -378,7 +378,15 @@ Definition type_of_val (v:val) : type :=
   | vabort => (fun valu => (tsingle valu = tabort))
   end.
 
-Definition colon
+Definition separation_type (l:loc) (v:val) (ty:type) : hprop :=
+  fun h => (h = (Fmap.single l v)) /\  type_of_val v = ty .
+
+Definition has_ref_type (l:loc) (v:val) (ty:type): hprop :=
+  fun h => Fmap.read h l = v /\ type_of_val v = ty.
+  
+  (* Fmap.read h l = v. *)
+
+(* Definition colon *)
   
 
 (* x->ref(1) ==> x:ref(1) *)
