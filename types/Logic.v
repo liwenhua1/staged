@@ -1043,6 +1043,24 @@ Proof.
   splits*.
 Qed.
 
+Ltac def_rewrite H := match type of H with | ?a = ?b => change a with b end.
+
+Axiom hstar_hpure_ll : forall P H h,
+  (H \* \[P]) h = (P /\ H h).
+
+Lemma triple_val2: forall H v ty,
+  triple (H \* \[type_of_val v = ty]) 
+  (fun r => H \* \[type_of_val v = ty /\ r = v /\type_of_val r = ty])
+   (pval v).
+Proof.
+  unfold triple. intros.
+  hintro.
+  inverts H1 as H1.
+  splits*.
+Abort.
+
+
+
 Lemma triple_err: forall H v,
   triple H (fun r => H \* \[r = verr])
    (pval verr).
