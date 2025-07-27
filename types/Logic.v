@@ -458,8 +458,7 @@ Theorem not_exists_iff_forall_not :
 
   
 
-
-
+(* Axiom  disjointness : forall (h1 h2:heap), (h1 = Fmap.single l v) /\ (Fmap.read h2 l = v) /\ Fmap.disjoint h1 h2 = false. *)
 
 Lemma hsingle_has_type_same_loc: forall l v ty h, 
   t_heap_and_pure
@@ -468,7 +467,7 @@ Lemma hsingle_has_type_same_loc: forall l v ty h,
 Proof.
   (* proof can be similar to this lemma *)
   intros. 
-  unfold t_heap_and_pure. unfold separation_type. unfold has_ref_type.  
+  unfold t_heap_and_pure. unfold separation_type. unfold has_ref_type.   
 Abort.
 
 
