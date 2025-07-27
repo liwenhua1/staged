@@ -378,11 +378,105 @@ Definition type_of_val (v:val) : type :=
   | vabort => (fun valu => (tsingle valu = tabort))
   end.
 
+Definition tpure := heap -> Prop.
+
+Definition equal_val (v1:val) (v2:val) : tpure := 
+  fun _ => v1 = v2.
+
+Definition has_ref_type (l:loc) (v:val) (ty:type): tpure :=
+  fun h => Fmap.read h l = v /\ type_of_val v = ty.
+
+Definition colon (v:val) (ty:type) : tpure := 
+   match (v, ty) with
+  | (vloc q, _) => has_ref_type q v ty 
+  | _ => 
+  fun _ => ty = type_of_val v
+  end.
+
+Definition pure_and (p1 p2:tpure) : tpure := 
+   fun h => p1 h /\ p2 h.
+
+Definition pure_or (p1 p2:tpure) : tpure := 
+   fun h => p1 h \/ p2 h.
+
+Lemma and_idem : forall A : Prop, (A /\ A) <-> A.
+Proof.
+  intros A.
+  split.
+  - (* (A /\ A) -> A *)
+    intros H.
+    destruct H as [HA _].
+    exact HA.
+  - (* A -> (A /\ A) *)
+    intros HA.
+    apply (conj HA HA).
+Qed.
+
+Lemma has_ref_type_duplicable: forall v ty q h,
+  colon (vloc q) ty h <-> pure_and (colon (vloc q) ty) (colon (vloc q) ty) h.
+Proof.
+  intros. unfold pure_and. symmetry. apply and_idem. 
+  
+  (* this is probably not true, unless pure conj is lifted to hprop? *)
+Qed.
+
+
 Definition separation_type (l:loc) (v:val) (ty:type) : hprop :=
   fun h => (h = (Fmap.single l v)) /\  type_of_val v = ty .
 
-Definition has_ref_type (l:loc) (v:val) (ty:type): hprop :=
-  fun h => Fmap.read h l = v /\ type_of_val v = ty.
+
+
+
+
+
+
+(* Definition or_tprop (tp1 tp2: tprop) : hprop := 
+  fun h => tp1 h \/ tp2 h. *)
+  
+Definition hstar (H1 H2 : hprop) : hprop :=
+  fun (h:heap) => exists h1 h2, H1 h1
+                             /\ H2 h2
+                             /\ Fmap.disjoint h1 h2
+                             /\ h = h1 \u h2.
+
+Definition tprop := hprop.
+
+Definition t_heap_and_pure (H:hprop) (P:tpure) : tprop := 
+    fun h => exists h1 h2, H h1
+                             /\ P h2
+                             /\ Fmap.disjoint h1 h2
+                             /\ h = h1 \u h2.
+
+Theorem not_exists_iff_forall_not :
+      (forall (A : Type) (P : A -> Prop), ~ (exists x, P x) <-> (forall x, ~ P x)).
+    Proof.
+      intros A P. split.
+      - intros H_nex x H_Px. apply H_nex. exists x. exact H_Px.
+      - intros H_fnot H_ex. destruct H_ex as [x H_Px]. apply (H_fnot x). exact H_Px.
+    Qed.
+
+
+  
+
+
+
+
+Lemma hsingle_has_type_same_loc: forall l v ty h, 
+  t_heap_and_pure
+  (separation_type l v ty )
+   (has_ref_type  l v ty ) h = false.
+Proof.
+  (* proof can be similar to this lemma *)
+  intros. 
+  unfold t_heap_and_pure. unfold separation_type. unfold has_ref_type.  
+Abort.
+
+
+
+
+
+
+
   
   (* Fmap.read h l = v. *)
 
@@ -399,12 +493,7 @@ Proof.
   applys Fmap.read_single.
 Qed.
 
-Lemma hsingle_has_type_same_loc: forall l v,
-  l~~>v \* has_type l v ==> \[False].
-Proof.
-  (* proof can be similar to this lemma *)
-  Check hstar_hsingle_same_loc.
-Abort.
+
 
 Lemma hsingle_duplicable: forall l v,
   has_type l v = has_type l v \* has_type l v.
