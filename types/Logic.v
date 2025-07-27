@@ -377,6 +377,8 @@ Definition type_of_val (v:val) : type :=
   | verr => (fun valu => (tsingle valu = terr))
   | vabort => (fun valu => (tsingle valu = tabort))
   end.
+
+Definition colon
   
 
 (* x->ref(1) ==> x:ref(1) *)
