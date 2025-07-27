@@ -361,6 +361,24 @@ Definition tnot t : type := fun v => not (t v).
 Definition has_type (l:loc) (v:val) : hprop :=
   fun h => Fmap.read h l = v.
 
+Definition type_of_val (v:val) : type := 
+  match v with
+  | vunit => (fun valu => valu = vunit)
+  | vint _ => (fun valu => exists q, valu = vint q)
+  | vfun _ _=> (fun valu => exists q1 q2, (valu = vfun q1 q2))
+  | vfix _ _ _=> (fun valu => exists q1 q2 q3, (valu = vfix q1 q2 q3))
+  (* | _ => (fun _ => false) *)
+  | vloc _ => (fun valu => exists q, (valu = vloc q))
+  | vstr _ => (fun valu => exists q, (valu = vstr q))
+  | vbool _ => (fun valu => exists q, (valu = vbool q))
+  | vconstr0 _=>  (fun valu => exists q, (valu = vconstr0 q))
+  | vconstr1 _ _=>  (fun valu => exists q1 q2, (valu = vconstr1 q1 q2))
+  | vconstr2 _ _ _ =>  (fun valu => exists q1 q2 q3, (valu = vconstr2 q1 q2 q3))
+  | verr => (fun valu => (tsingle valu = terr))
+  | vabort => (fun valu => (tsingle valu = tabort))
+  end.
+  
+
 (* x->ref(1) ==> x:ref(1) *)
 Lemma weakening: forall l v,
   l~~>v ==> has_type l v.
