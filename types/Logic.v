@@ -997,7 +997,7 @@ Proof.
 Qed.
 
 (** * Semantics of triples *)
-Definition triple H Q e :=
+Definition triple (H:tprop) Q e :=
   forall h1, H h1 ->
   forall h2 r, bigstep h1 e h2 r -> Q r h2.
 
@@ -1090,7 +1090,7 @@ Proof.
   inverts H1 as H1.
   rewrite -> hstar_hpure_ll in H0.
   splits*.
-Abort.
+Qed.
 
 
 
