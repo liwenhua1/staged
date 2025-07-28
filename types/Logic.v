@@ -384,7 +384,7 @@ Definition equal_val (v1:val) (v2:val) : tpure :=
   fun _ => v1 = v2.
 
 Definition has_ref_type (l:loc) (v:val) (ty:type): tpure :=
-  fun h => Fmap.read h l = v /\ type_of_val v = ty.
+  fun h => Fmap.indom h l /\ Fmap.read h l = v /\ type_of_val v = ty.
 
 Definition colon (v:val) (ty:type) : tpure := 
    match (v, ty) with
@@ -412,10 +412,30 @@ Proof.
     apply (conj HA HA).
 Qed.
 
-Lemma has_ref_type_duplicable: forall v ty q h,
+Lemma leibniz_equality : forall (X : Type) (x y: X),
+ x = y -> forall P : X -> Prop, P x -> P y.
+Proof.
+  intros. 
+  rewrite -> H in H0. 
+  auto.
+(* FILL IN HERE *) Admitted.
+
+(* Lemma and_idem_equal : forall A : Prop, (A /\ A) = A.
+Proof.
+  intros.
+  
+
+Admitted. *)
+
+
+
+Lemma has_ref_type_duplicable: forall  ty q h,
   colon (vloc q) ty h <-> pure_and (colon (vloc q) ty) (colon (vloc q) ty) h.
 Proof.
-  intros. unfold pure_and. symmetry. apply and_idem. 
+  
+  intros.
+  
+  unfold pure_and. symmetry. apply and_idem. 
   
   (* this is probably not true, unless pure conj is lifted to hprop? *)
 Qed.
@@ -463,12 +483,24 @@ Theorem not_exists_iff_forall_not :
 Lemma hsingle_has_type_same_loc: forall l v ty h, 
   t_heap_and_pure
   (separation_type l v ty )
-   (has_ref_type  l v ty ) h = false.
+   (has_ref_type  l v ty ) h <-> False.
 Proof.
   (* proof can be similar to this lemma *)
   intros. 
-  unfold t_heap_and_pure. unfold separation_type. unfold has_ref_type.   
-Abort.
+  iff H.
+  2: {
+  false.
+  }
+  unfold t_heap_and_pure in H.
+  destr H.
+  unfold separation_type in H0. unfold has_ref_type in H. destr H0.
+  destr H.
+  lets: Fmap.indom_single l v.
+  rewrite <- H2 in H5.
+  lets Hd: Fmap.disjoint_inv_not_indom_both.
+  eauto.
+
+Qed.
 
 
 
@@ -1056,6 +1088,7 @@ Proof.
   unfold triple. intros.
   hintro.
   inverts H1 as H1.
+  rewrite -> hstar_hpure_ll in H0.
   splits*.
 Abort.
 
